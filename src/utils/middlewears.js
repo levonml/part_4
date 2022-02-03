@@ -38,15 +38,18 @@ const tokenExtractor = (request, response, next) => {
 };
 const userExtractor = async (request, response, next) => {
 	try {
-		console.log("ddddddddddddddddddd", request.token);
+		//console.log("Extracted Tokeeen", request.token);
 		const decodedToken = request.token
 			? jwt.verify(request.token, process.env.SECRET)
 			: null;
+		//console.log("decodedToken - ", decodedToken);
 		if (!decodedToken || !decodedToken.id) {
 			return response.status(401).json({ error: "token missing or invalid" });
 		}
-
+		//console.log("decodedToken.id ======", decodedToken.id);
+		//console.log(":users in the databasw =", await User.find({}));
 		const user = await User.findById(decodedToken.id);
+		//console.log("useeeeeeeeeeeeeer  after", user);
 		if (!user) {
 			return response.status(401).json({ error: "invalid tiken" });
 		}

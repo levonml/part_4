@@ -1,10 +1,10 @@
 import supertest from "supertest";
-import app from "../app.js";
+import app from "../src/app.js";
 import mongoose from "mongoose";
-import Blog from "../models/blogModel.js";
-import User from "../models/userModel.js";
+import Blog from "../src/models/blogModel.js";
+import User from "../src/models/userModel";
 import helper from "./test_helper";
-import { jest } from "@jest/globals";
+//import { jest } from "@jest/globals";
 
 const api = supertest(app);
 
@@ -15,7 +15,10 @@ beforeEach(async () => {
 	}
 	await User.deleteMany({});
 	for (let i = 0; i < helper.initialUser.length; i++) {
-		await new User(helper.initialUser[i]).save();
+		console.log(
+			"initialllll usereer",
+			await new User(helper.initialUser[i]).save()
+		);
 	}
 });
 describe("testing api", () => {
@@ -41,13 +44,19 @@ describe("check the number of lists", () => {
 });
 describe("adding a note to the blog with the POST method", () => {
 	test("success with status code 201, length has increesed by one ", async () => {
-		console.lor("dddddddddddddd");
+		const received = await api
+			.post("/api/login")
+			.send(helper.userForLogin)
+			.expect(200)
+			.expect("Content-Type", /application\/json/);
 		await api
 			.post("/api/blogs")
 			.send(helper.newBlog)
+			.set("Authorization", `Bearer ${received.body.token}`)
 			.expect(201)
 			.expect("Content-Type", /application\/json/);
 		const receivedNotes = await helper.notesInDb();
+		console.log("receivedNotes from creator ===", receivedNotes);
 		expect(receivedNotes.length).toBe(helper.initialBlog.length + 1);
 	});
 });
@@ -56,7 +65,6 @@ describe("modifying a note to the blog with the Put request", () => {
 		const BlogAtStart = await helper.notesInDb();
 		let NoteToModify = BlogAtStart[0];
 		NoteToModify.likes = 5000;
-		console.log("likeeeeeeeeeees", NoteToModify.likes);
 		await api
 			.put(`/api/blogs/${NoteToModify.id}`)
 			.send(NoteToModify)
@@ -68,8 +76,17 @@ describe("modifying a note to the blog with the Put request", () => {
 });
 describe("deleting a single note", () => {
 	test("success with status code 200 if id is valid", async () => {
+		await Blog.deleteMany({});
+		const received = await api.post("/api/login").send(helper.userForLogin);
+		await api
+			.post("/api/blogs")
+			.send(helper.newBlog)
+			.set("Authorization", `Bearer ${received.body.token}`);
 		let blogAtStart = await helper.notesInDb();
-		await api.delete(`/api/blogs/${blogAtStart[1].id}`).expect(204);
+		await api
+			.delete(`/api/blogs/${blogAtStart[0].id}`)
+			.set("Authorization", `Bearer ${received.body.token}`)
+			.expect(204);
 		const receivedBlog = await helper.notesInDb();
 		expect(receivedBlog).toHaveLength(blogAtStart.length - 1);
 	});

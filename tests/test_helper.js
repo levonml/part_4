@@ -1,10 +1,15 @@
-import Blog from "../models/blogModel.js";
-import User from "../models/userModel.js";
+import Blog from "../src/models/blogModel.js";
+import User from "../src/models/userModel.js";
+import bcrypt from "bcrypt";
+
+const password = "12345";
+const saltRounds = 10;
+const passwordHash = await bcrypt.hash(password, saltRounds);
 const initialUser = [
 	{
 		name: "Levon",
 		userName: "levonml",
-		id: "123456",
+		password: passwordHash,
 	},
 ];
 const initialBlog = [
@@ -13,14 +18,14 @@ const initialBlog = [
 		author: "ME myself",
 		url: "unknown",
 		likes: 555,
-		userId: initialUser[0].id,
+		//user: [initialUser[0].id],
 	},
 	{
 		title: "My Second Test",
 		author: "ME myself",
 		url: "unknown",
 		likes: 1111,
-		userId: initialUser[0].id,
+		//user: [initialUser[0].id],
 	},
 ];
 let newBlog = {
@@ -28,18 +33,19 @@ let newBlog = {
 	author: "ME myself",
 	url: "unknown",
 	likes: 3333,
-	userId: initialUser[0].id,
+	//user: [initialUser[0].id],
 };
 const newUser = {
 	name: "Levon_new",
 	userName: "levon_new",
-	id: "123456",
+	password: "12345",
+};
+const userForLogin = {
+	userName: initialUser[0].userName,
+	password: password,
 };
 const notesInDb = async () => {
-	console.log("beforeeeeeeeeeeeeeeeee");
 	let result = await Blog.find({});
-	console.log("afterrrrrrrrrrrrr");
-
 	result = result.map((note) => note.toJSON());
 	return result;
 };
@@ -55,4 +61,6 @@ export default {
 	initialUser,
 	usersInDb,
 	newUser,
+	userForLogin,
+	password,
 };

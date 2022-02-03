@@ -2,7 +2,6 @@ import express from "express";
 import Blog from "../models/blogModel.js";
 import User from "../models/userModel.js";
 import middlewear from "../utils/middlewears.js";
-import jwt from "jsonwebtoken";
 
 const blogRouter = express.Router();
 blogRouter.get("/", async (request, response, next) => {
@@ -30,34 +29,16 @@ blogRouter.post(
 	middlewear.userExtractor,
 	async (request, response, next) => {
 		try {
-			//const decodedToken = request.token
-			//	? jwt.verify(request.token, process.env.SECRET)
-			//	: null;
-			//if (!decodedToken || !decodedToken.id) {
-			//	return response.status(401).json({ error: "token missing or invalid" });
-			//}
 			const user = request.user;
-			console.log("user from middlewear = ", user);
-			//const user = await User.findById(decodedToken.id);
-			//if (!user) {
-			//	return response.status(401).json({ error: "token is invalid" });
-			//}
 			let blog = new Blog({
 				author: request.body.author,
 				title: request.body.title,
 				user: user._id,
 			});
 			const saved_blog = await blog.save();
-			user.notes = user.notes.concat(saved_blog._id);
+			const newNote = user.notes.concat(saved_blog._id);
+			await user.update({ notes: newNote });
 			response.status(201).json(saved_blog).end();
-			const u = new User({
-				userName: user.userName,
-				name: user.name,
-				notes: user.notes,
-			});
-			console.log("user is", u);
-			await u.save();
-			console.log("new useeeer", u);
 		} catch (err) {
 			next(err);
 		}
