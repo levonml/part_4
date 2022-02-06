@@ -28,4 +28,3 @@ app.use("/api/login", loginRouter);
 app.use(middlewear.errorHandler);
 app.use(middlewear.unknownEndpoint);
 export default app;
-//module.exports = app;

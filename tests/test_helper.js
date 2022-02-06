@@ -17,23 +17,29 @@ const initialBlog = [
 		title: "My First Test",
 		author: "ME myself",
 		url: "unknown",
-		likes: 555,
-		//user: [initialUser[0].id],
+		likes: 12,
 	},
 	{
 		title: "My Second Test",
 		author: "ME myself",
 		url: "unknown",
-		likes: 1111,
-		//user: [initialUser[0].id],
+		likes: 14,
 	},
 ];
 let newBlog = {
 	title: "My 3th Test",
 	author: "ME myself",
 	url: "unknown",
-	likes: 3333,
-	//user: [initialUser[0].id],
+	likes: 33,
+};
+let newBlogMissingLikes = {
+	title: "No likes",
+	author: "ME myself",
+	url: "unknown",
+};
+let newBlogMissingUrlTitle = {
+	author: "ME myself",
+	likes: 33,
 };
 const newUser = {
 	name: "Levon_new",
@@ -63,4 +69,6 @@ export default {
 	newUser,
 	userForLogin,
 	password,
+	newBlogMissingLikes,
+	newBlogMissingUrlTitle,
 };

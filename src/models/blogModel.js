@@ -1,14 +1,15 @@
 import mongoose from "mongoose";
 
 const blogSchema = new mongoose.Schema({
-	title: String,
+	title: { type: String, required: true },
 	author: String,
-	url: String,
-	likes: Number,
+	url: { type: String, required: true },
+	likes: {
+		type: Number,
+		default: 0,
+	},
 	userId: String,
 	id: String,
-	//_id: mongoose.Schema.Types.ObjectId,
-	//__v: mongoose.Schema.Types.ObjectId,
 	user: [
 		{
 			type: mongoose.Schema.Types.ObjectId,

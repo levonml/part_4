@@ -4,7 +4,6 @@ import mongoose from "mongoose";
 import Blog from "../src/models/blogModel.js";
 import User from "../src/models/userModel";
 import helper from "./test_helper";
-//import { jest } from "@jest/globals";
 
 const api = supertest(app);
 
@@ -15,18 +14,25 @@ beforeEach(async () => {
 	}
 	await User.deleteMany({});
 	for (let i = 0; i < helper.initialUser.length; i++) {
-		console.log(
-			"initialllll usereer",
-			await new User(helper.initialUser[i]).save()
-		);
+		await new User(helper.initialUser[i]).save();
 	}
 });
-describe("testing api", () => {
+describe("when there is initially some notes saved", () => {
 	test("Blogs api returns json", async () => {
 		await api
 			.get("/api/blogs")
 			.expect(200)
 			.expect("Content-Type", /application\/json/);
+	});
+	test("database has currect number of blogs and 'id' key is defined", async () => {
+		const receivedBlog = await api.get("/api/blogs");
+		expect(receivedBlog.body).toHaveLength(helper.initialBlog.length);
+		expect(receivedBlog.body[0].id).toBeDefined();
+	});
+	test("a specific blog is within the returned blog", async () => {
+		const response = await api.get("/api/blogs");
+		const contents = response.body.map((r) => r.title);
+		expect(contents).toContain("My First Test");
 	});
 	test("Users api returns json", async () => {
 		await api
@@ -34,12 +40,10 @@ describe("testing api", () => {
 			.expect(200)
 			.expect("Content-Type", /application\/json/);
 	});
-});
-describe("check the number of lists", () => {
-	test("database has currect number of lists and 'id' key is defined", async () => {
-		const receivedBlog = await api.get("/api/blogs");
-		expect(receivedBlog.body).toHaveLength(helper.initialBlog.length);
-		expect(receivedBlog.body[0].id).toBeDefined();
+	test("check the number of existing users", async () => {
+		const receivedUsers = await api.get("/api/users");
+		const usersAtStart = await helper.usersInDb();
+		expect(receivedUsers.body).toHaveLength(usersAtStart.length);
 	});
 });
 describe("adding a note to the blog with the POST method", () => {
@@ -56,8 +60,24 @@ describe("adding a note to the blog with the POST method", () => {
 			.expect(201)
 			.expect("Content-Type", /application\/json/);
 		const receivedNotes = await helper.notesInDb();
-		console.log("receivedNotes from creator ===", receivedNotes);
 		expect(receivedNotes.length).toBe(helper.initialBlog.length + 1);
+	});
+	test("if the likes property is missing from the request, it will default to the value 0", async () => {
+		const received = await api.post("/api/login").send(helper.userForLogin);
+		await api
+			.post("/api/blogs")
+			.send(helper.newBlogMissingLikes)
+			.set("Authorization", `Bearer ${received.body.token}`);
+		const receivedNotes = await helper.notesInDb();
+		expect(receivedNotes[2].likes).toBe(0);
+	});
+	test("if the title and url properties are missing, the responds is status code 400 Bad Request.", async () => {
+		const received = await api.post("/api/login").send(helper.userForLogin);
+		await api
+			.post("/api/blogs")
+			.send(helper.newBlogMissingUrlTitle)
+			.set("Authorization", `Bearer ${received.body.token}`)
+			.expect(400);
 	});
 });
 describe("modifying a note to the blog with the Put request", () => {
@@ -101,16 +121,8 @@ describe("get a single note with id", () => {
 		expect(requestedList.body).toEqual(blogAtStart[0]);
 	});
 });
-describe("get all existing users", () => {
-	test("check the number of existing users", async () => {
-		const receivedUsers = await api.get("/api/users");
-		const usersAtStart = await helper.usersInDb();
-		expect(receivedUsers.body).toHaveLength(usersAtStart.length);
-	});
-});
 describe("add a new user", () => {
 	test("return error in case of not unique value of userName", async () => {
-		//await api.post("/api/users").send(helper.initialUser);
 		await api.post("/api/users").send(helper.newUser);
 		const receivedUsers = await api.get("/api/users");
 		expect(receivedUsers.body).toHaveLength(2);
