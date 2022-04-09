@@ -58,6 +58,7 @@ blogRouter.delete(
 	"/:id",
 	middlewear.userExtractor,
 	async (request, response, next) => {
+		console.log("<<<<<<<<<<<<<<<<<<<<<");
 		try {
 			let note = await Blog.findById(request.params.id);
 			if (!note) {
